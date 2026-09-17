@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>64-Team Football Championship</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c16;
+    --box: #161c2a;
+    --box-hi: #222b40;
+    --box-border: #272f42;
+    --line: #2f384d;
+    --text: #e8ecf4;
+    --muted: #6b7486;
+    --green: #7dff5a;
+    --green-dim: #3f8a33;
+    --gold: #e6b84f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; }
+
+  /* ---------- toolbar ---------- */
+  #toolbar {
+    position: sticky; top: 0; left: 0; z-index: 20;
+    display: flex; gap: 8px; align-items: center; justify-content: flex-end;
+    padding: 8px 14px;
+    background: rgba(8, 12, 22, .92);
+    border-bottom: 1px solid #1a2132;
+    backdrop-filter: blur(6px);
+  }
+  #toolbar .hint { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 500; }
+  .btn {
+    font: 600 14px 'Barlow Semi Condensed', system-ui, sans-serif; letter-spacing: .4px;
+    color: var(--text); background: #182033; border: 1px solid #2c3750; border-radius: 6px;
+    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+  }
+  .btn:hover { background: #212c45; border-color: #44547a; }
+  .btn.active { background: #1d3a1a; border-color: var(--green); color: var(--green); }
+  .btn.danger:hover { background: #3a1a1e; border-color: #c2535f; }
+  .btn:disabled { opacity: .5; cursor: progress; }
+
+  /* ---------- scaling shell ---------- */
+  #viewport { overflow-x: auto; overflow-y: hidden; padding: 0; }
+  #sizer { margin: 0 auto; position: relative; }
+  #stage {
+    position: absolute; top: 0; left: 0;
+    width: 2000px; height: 1110px;
+    transform-origin: 0 0;
+    background:
+      radial-gradient(ellipse 330px 420px at 1000px 660px, rgba(74, 170, 52, .20), rgba(74, 170, 52, 0) 100%),
+      radial-gradient(ellipse 1100px 700px at 1000px 420px, #111a2e, rgba(8, 12, 22, 0) 100%),
+      #080c16;
+    overflow: hidden;
+    user-select: none; -webkit-user-select: none;
+  }
+
+  /* ---------- title + headers ---------- */
+  .title-box {
+    position: absolute; left: 572px; top: 7px; width: 856px; height: 116px;
+    background: #04060b; text-align: center;
+  }
+  .title-box h1 {
+    margin: 0; padding-top: 16px;
+    font: 400 66px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3px; color: #fff;
+  }
+  .title-box p {
+    margin: 6px 0 0; font-size: 12px; font-weight: 500; letter-spacing: 5px; color: #808899;
+  }
+  .hdr {
+    position: absolute; top: 146px; width: 176px; text-align: center;
+    font: 400 17px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3.5px; color: var(--muted);
+  }
+  .hdr.green { color: var(--green); text-shadow: 0 0 10px rgba(125, 255, 90, .35); }
+
+  /* ---------- team slots ---------- */
+  .slot {
+    position: absolute; height: 23px; width: 150px; margin: 0;
+    display: flex; align-items: center; gap: 5px; padding: 0 7px;
+    background: var(--box); border: 1px solid var(--box-border); border-radius: 4px;
+    color: var(--text); font: 600 13.5px/1 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+    text-align: left; cursor: pointer;
+    transition: background .12s, border-color .12s, opacity .12s;
+  }
+  .slot.right { flex-direction: row-reverse; text-align: right; }
+  .slot .seed { flex: none; width: 14px; text-align: center; font-size: 9.5px; font-weight: 500; color: #5b6479; }
+  .slot .name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-bottom: 1px; }
+  .slot.empty { cursor: default; background: #131926; border-color: #222a3c; }
+  .slot.empty::after {
+    content: ''; position: absolute; left: 25%; right: 25%; top: 50%; height: 1px; background: #2a3347;
+  }
+  .slot.waiting { cursor: not-allowed; }
+  .slot.lose { opacity: .36; }
+  .slot.win {
+    background: #17331a; border-color: var(--green); color: #c9ffb8;
+    box-shadow: 0 0 8px rgba(125, 255, 90, .28);
+  }
+  .slot.win .seed { color: #79c766; }
+  .slot.hl:not(.empty) { border-color: #6f7fa6; background: var(--box-hi); }
+  .slot.win.hl { border-color: var(--green); background: #1d4421; }
+  .slot:not(.empty):hover { background: var(--box-hi); border-color: #8c9cc4; opacity: 1; }
+  .slot.win:hover { background: #1d4421; border-color: var(--green); }
+  .slot:focus-visible { outline: 2px solid #9db4ff; outline-offset: 1px; }
+
+  .slot.final { width: 170px; height: 27px; font-size: 15px; }
+  .slot.third { width: 144px; }
+
+  /* edit mode */
+  .slot.editing { padding: 0 3px 0 7px; cursor: text; border-style: dashed; border-color: #c9a545; background: #1e1c14; }
+  .slot.editing input {
+    flex: 1; min-width: 0; height: 19px; border: 0; outline: 0; background: transparent;
+    color: #ffe9ae; font: inherit; text-align: inherit; padding: 0;
+  }
+
+  /* ---------- connector lines ---------- */
+  .ln { position: absolute; background: var(--line); }
+  .ln.gd { background: var(--green-dim); }
+  .ln.g { background: var(--green); box-shadow: 0 0 6px rgba(125, 255, 90, .55); z-index: 1; }
+
+  /* ---------- center ---------- */
+  .champ-label {
+    position: absolute; left: 917px; top: 353px; width: 166px; height: 62px;
+    background: #24452a; color: var(--green); text-align: center;
+    font: 400 31px/62px 'Bebas Neue', Impact, sans-serif; letter-spacing: 5px;
+    text-shadow: 0 0 12px rgba(125, 255, 90, .4);
+  }
+  .trophy { position: absolute; left: 976px; top: 417px; width: 48px; height: 48px; }
+  .champ {
+    position: absolute; left: 915px; top: 480px; width: 170px; height: 40px;
+    display: flex; align-items: center; justify-content: center; padding: 0 8px;
+    border: 1.5px solid var(--green-dim); border-radius: 6px; background: #1b3420;
+    font-size: 18px; font-weight: 700; color: #eaffdf; text-align: center;
+  }
+  .champ span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-bottom: 1px; }
+  .champ.set { border-color: var(--green); background: #21502a; box-shadow: 0 0 18px rgba(125, 255, 90, .45); }
+  .champ:not(.set)::after { content: ''; width: 50%; height: 1px; background: #35593a; }
+  .third-label {
+    position: absolute; left: 900px; top: 690px; width: 200px; text-align: center;
+    font: 400 13px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3px; color: var(--muted);
+  }
+
+  /* ---------- modal ---------- */
+  #modal {
+    position: fixed; inset: 0; z-index: 50; display: none;
+    align-items: center; justify-content: center; background: rgba(3, 5, 10, .7);
+  }
+  #modal.open { display: flex; }
+  #modal .card {
+    width: min(360px, calc(100vw - 32px)); padding: 20px;
+    background: #121929; border: 1px solid #2c3750; border-radius: 10px;
+  }
+  #modal h2 { margin: 0 0 6px; font-size: 20px; }
+  #modal p { margin: 0 0 16px; color: #9aa4b8; font-size: 15px; font-weight: 500; }
+  #modal .row { display: flex; gap: 8px; justify-content: flex-end; }
+  #modal .btn.confirm { background: #4a1d23; border-color: #c2535f; }
+
+  @media (max-width: 700px) {
+    #toolbar .hint { display: none; }
+    #toolbar { justify-content: center; flex-wrap: wrap; }
+  }
+</style>
+</head>
+<body>
+
+<div id="toolbar">
+  <span class="hint" id="hint">Click a team to advance it. Click the other team to switch.</span>
+  <button class="btn" id="btnEdit" type="button">Edit team names</button>
+  <button class="btn" id="btnExport" type="button">Export as PNG</button>
+  <button class="btn danger" id="btnReset" type="button">Reset bracket</button>
+</div>
+
+<div id="viewport"><div id="sizer"><div id="stage"></div></div></div>
+
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="card">
+    <h2 id="modalTitle">Reset bracket?</h2>
+    <p>All picked winners will be cleared. Team names are kept.</p>
+    <div class="row">
+      <button class="btn" id="modalCancel" type="button">Cancel</button>
+      <button class="btn confirm" id="modalOk" type="button">Reset</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* =====================================================================
+     DATA MODEL
+     matches[] — one entry per match:
+       { id, round, index, teamA, teamB, winner, nextMatch, nextSlot,
+         loserMatch, loserSlot }
+     teamA / teamB are seed indices (0‥63) into names[], or null.
+     winner is 'A' | 'B' | null. Rounds 0‥5 = R64‥Final, round 6 = 3rd place.
+     Within a round the first half of the indices is the left side of the
+     bracket and the second half is the right side.
+     ===================================================================== */
+
+  var DEFAULT_NAMES = [
+    'FC VOHA', 'CIFS4', 'Qizil Furiya', 'Joga Bonito', 'Reapers56', 'Sogdiyona', 'Emirate', 'Wiut MEN',
+    'Invictus FC', 'Dagestanians', 'Chapman 2.0', 'Legacy FC', 'Fenix', 'Erkatoylar', 'ALWIUT', 'ThinkLike FC',
+    'West Mahalla', 'IHT', 'Apex', 'Hot Loads', 'The Best of the Best', 'CIFS43', 'Dehqonlar', 'Gingers',
+    'Ajax FC', 'Sola Sol', 'Prime United', 'Bullet', 'Batman', 'Bayern', 'Egoisto', 'Camelot',
+    'La Masia', 'KIOTA', 'Uzbelas FC', 'Hayvani', 'Nozik Qalb Egalari', 'cifs34', 'CIFS 25', 'Shwerma FC',
+    'Psychos', 'oo7', 'Good Fellas', 'Paris Noir', 'Gentra 1.5', 'CIFS47', 'FKB Icons', 'Uzbek Tigers',
+    'ACE', 'La Scaloneta', '303 United', 'Falcons', 'Nova FC', 'Beliy Tracker', 'Uzbeks', 'CIFS42',
+    'Arteta lovers', 'Zolotoy', 'Red Devils', 'CIFS22', 'Naturals', 'Lucky 13', 'Khanov Team', 'Inferno'
+  ];
+  var ROUND_SIZES = [32, 16, 8, 4, 2, 1];
+  var FINAL = 5, THIRD = 6;
+  var STORAGE_KEY = 'bracket64.v1';
+
+  var names = DEFAULT_NAMES.slice();
+  var matches = [];
+  var roundStart = [];          // id of the first match in each round
+  var editMode = false;
+
+  function buildMatches() {
+    matches = []; roundStart = [];
+    var id = 0;
+    ROUND_SIZES.forEach(function (n, r) { roundStart[r] = id; id += n; });
+    var thirdId = id;
+    ROUND_SIZES.forEach(function (n, r) {
+      for (var i = 0; i < n; i++) {
+        matches.push({
+          id: roundStart[r] + i, round: r, index: i,
+          teamA: r === 0 ? 2 * i : null,
+          teamB: r === 0 ? 2 * i + 1 : null,
+          winner: null,
+          nextMatch: r < FINAL ? roundStart[r + 1] + Math.floor(i / 2) : null,
+          nextSlot: r < FINAL ? (i % 2 === 0 ? 'A' : 'B') : null,
+          loserMatch: r === FINAL - 1 ? thirdId : null,     // semifinal losers → 3rd place
+          loserSlot: r === FINAL - 1 ? (i === 0 ? 'A' : 'B') : null
+        });
+      }
+    });
+    matches.push({
+      id: thirdId, round: THIRD, index: 0, teamA: null, teamB: null, winner: null,
+      nextMatch: null, nextSlot: null, loserMatch: null, loserSlot: null
+    });
+  }
+
+  function team(m, slot) { return slot === 'A' ? m.teamA : m.teamB; }
+  function winnerOf(m) { return m.winner ? team(m, m.winner) : null; }
+  function loserOf(m) { return m.winner ? team(m, m.winner === 'A' ? 'B' : 'A') : null; }
+
+  // Put `value` into a slot. If the participant changed, the match result no
+  // longer stands, so its winner is cleared and the change cascades onward.
+  function setSlot(matchId, slot, value) {
+    var m = matches[matchId];
+    var key = slot === 'A' ? 'teamA' : 'teamB';
+    if (m[key] === value) return;
+    m[key] = value;
+    m.winner = null;
+    propagate(m);
+  }
+
+  function propagate(m) {
+    if (m.nextMatch !== null) setSlot(m.nextMatch, m.nextSlot, winnerOf(m));
+    if (m.loserMatch !== null) setSlot(m.loserMatch, m.loserSlot, loserOf(m));
+  }
+
+  // Click handler logic: pick, switch, or (clicking the winner again) un-pick.
+  function pick(matchId, slot) {
+    var m = matches[matchId];
+    if (m.teamA === null || m.teamB === null) return false;
+    m.winner = m.winner === slot ? null : slot;
+    propagate(m);
+    return true;
+  }
+
+  /* ---------- persistence ---------- */
+  function save() {
+    try {
+      var winners = {};
+      matches.forEach(function (m) { if (m.winner) winners[m.id] = m.winner; });
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ names: names, winners: winners }));
+    } catch (e) { /* storage unavailable — bracket still works for this session */ }
+  }
+
+  function load() {
+    buildMatches();
+    var data = null;
+    try { data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) {}
+    if (!data) return;
+    if (Array.isArray(data.names) && data.names.length === 64) {
+      names = data.names.map(function (n, i) { return typeof n === 'string' && n.trim() ? n : DEFAULT_NAMES[i]; });
+    }
+    // Replay winners in id order (earlier rounds first) so slots fill up naturally.
+    var w = data.winners || {};
+    matches.forEach(function (m) {
+      var s = w[m.id];
+      if ((s === 'A' || s === 'B') && m.teamA !== null && m.teamB !== null) { m.winner = s; propagate(m); }
+    });
+  }
+
+  /* =====================================================================
+     GEOMETRY (design space 2000 × 1110, scaled to the window)
+     ===================================================================== */
+  var W = 2000, H = 1110;
+  var COL_X = 30, COL_W = 150, COL_PITCH = 176, BOX_H = 23, JOIN = 13;
+  var FINAL_X = 915, FINAL_W = 170, FINAL_H = 27, FINAL_YA = 610, FINAL_YB = 642;
+  var THIRD_X = 928, THIRD_YA = 722, THIRD_YB = 750;
+  var CHAMP_BOTTOM = 520;
+
+  // Y[r][k] = vertical centre of the k-th box in column r (same for both sides)
+  var Y = [[]];
+  for (var k = 0; k < 32; k++) Y[0][k] = 192 + Math.floor(k / 2) * 56.25 + (k % 2) * 25;
+  for (var r = 1; r <= 4; r++) {
+    Y[r] = [];
+    for (var j = 0; j < Y[r - 1].length / 2; j++) Y[r][j] = (Y[r - 1][2 * j] + Y[r - 1][2 * j + 1]) / 2;
+  }
+
+  function slotGeom(m, slot) {
+    if (m.round === THIRD) return { x: THIRD_X, y: slot === 'A' ? THIRD_YA : THIRD_YB, w: 144, h: BOX_H, right: false };
+    if (m.round === FINAL) return { x: FINAL_X, y: slot === 'A' ? FINAL_YA : FINAL_YB, w: FINAL_W, h: FINAL_H, right: false };
+    var half = ROUND_SIZES[m.round] / 2;
+    var right = m.index >= half;
+    var local = right ? m.index - half : m.index;
+    var x = right ? W - COL_X - COL_W - m.round * COL_PITCH : COL_X + m.round * COL_PITCH;
+    return { x: x, y: Y[m.round][2 * local + (slot === 'B' ? 1 : 0)], w: COL_W, h: BOX_H, right: right };
+  }
+
+  /* =====================================================================
+     RENDERING — everything below is derived from matches[] + names[]
+     ===================================================================== */
+  var stage = document.getElementById('stage');
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function line(x1, y1, x2, y2, cls) {
+    var t = 2, left = Math.min(x1, x2), top = Math.min(y1, y2);
+    var w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
+    if (h === 0) { top -= t / 2; h = t; } else { left -= t / 2; w = t; top -= t / 2; h += t; }
+    return '<div class="ln ' + (cls || '') + '" style="left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px"></div>';
+  }
+
+  function connectorHTML(m) {
+    if (m.round >= FINAL) return '';
+    var a = slotGeom(m, 'A'), b = slotGeom(m, 'B');
+    var next = slotGeom(matches[m.nextMatch], m.nextSlot);
+    var from, jx, to, ty = next.y;
+    if (!a.right) { from = a.x + a.w; jx = from + JOIN; to = next.x; }
+    else { from = a.x; jx = from - JOIN; to = next.x + next.w; }
+    if (m.round === FINAL - 1) { jx = a.right ? 1100 : 900; }
+    var base = m.round === FINAL - 1 ? 'gd' : '';
+    var ca = m.winner === 'A' ? 'g' : base, cb = m.winner === 'B' ? 'g' : base, co = m.winner ? 'g' : base;
+    return line(from, a.y, jx, a.y, ca) + line(jx, a.y, jx, ty, ca) +
+           line(from, b.y, jx, b.y, cb) + line(jx, b.y, jx, ty, cb) +
+           line(jx, ty, to, ty, co);
+  }
+
+  function slotHTML(m, slot) {
+    var g = slotGeom(m, slot), t = team(m, slot);
+    var cls = ['slot'];
+    if (g.right) cls.push('right');
+    if (m.round === FINAL) cls.push('final');
+    if (m.round === THIRD) cls.push('third');
+    var style = 'left:' + g.x + 'px;top:' + (g.y - g.h / 2) + 'px';
+    var data = ' data-match="' + m.id + '" data-slot="' + slot + '"';
+
+    if (t === null) {
+      return '<div class="' + cls.join(' ') + ' empty" style="' + style + '"></div>';
+    }
+    var seed = '<span class="seed">' + (t + 1) + '</span>';
+    if (editMode && m.round === 0) {
+      return '<div class="' + cls.join(' ') + ' editing" style="' + style + '">' + seed +
+        '<input type="text" maxlength="40" data-seed="' + t + '" value="' + esc(names[t]) + '" aria-label="Team ' + (t + 1) + ' name"></div>';
+    }
+    var ready = m.teamA !== null && m.teamB !== null;
+    if (!ready) cls.push('waiting');
+    if (m.winner === slot) cls.push('win');
+    else if (m.winner) cls.push('lose');
+    var tip = ready ? names[t] : names[t] + ' — waiting for opponent';
+    return '<button type="button" class="' + cls.join(' ') + '" style="' + style + '"' + data +
+      ' data-seed="' + t + '" title="' + esc(tip) + '"' + (m.winner === slot ? ' aria-pressed="true"' : '') + '>' +
+      seed + '<span class="name">' + esc(names[t]) + '</span></button>';
+  }
+
+  // <img> with an inline SVG data URI — html2canvas drops inline <svg> elements on export
+  var TROPHY = '<img class="trophy" alt="" width="48" height="48" src="data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="96" height="96" fill="none" stroke="#e6b84f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+    '<path d="M14 6h20v12a10 10 0 0 1-20 0V6z"/><path d="M14 10H7v3a7 7 0 0 0 7 7"/><path d="M34 10h7v3a7 7 0 0 1-7 7"/>' +
+    '<path d="M24 28v7"/><path d="M17 42l2-7h10l2 7z"/></svg>') + '">';
+
+  function render() {
+    var html = '';
+    html += '<div class="title-box"><h1>64-TEAM FOOTBALL CHAMPIONSHIP</h1><p>SINGLE ELIMINATION</p></div>';
+
+    var labels = ['ROUND OF 64', 'ROUND OF 32', 'ROUND OF 16', 'QUARTERFINALS', 'SEMIFINAL'];
+    labels.forEach(function (label, r) {
+      var lx = COL_X + r * COL_PITCH + COL_W / 2 - 88, g = r === 4 ? ' green' : '';
+      html += '<div class="hdr' + g + '" style="left:' + lx + 'px">' + label + '</div>';
+      html += '<div class="hdr' + g + '" style="left:' + (W - lx - 176) + 'px">' + label + '</div>';
+    });
+    html += '<div class="hdr green" style="left:' + (W / 2 - 88) + 'px">FINAL</div>';
+
+    matches.forEach(function (m) { html += connectorHTML(m); });
+
+    // champion ← final
+    var fin = matches[roundStart[FINAL]], champ = winnerOf(fin);
+    html += line(W / 2, CHAMP_BOTTOM, W / 2, FINAL_YA - FINAL_H / 2, champ !== null ? 'g' : 'gd');
+    html += '<div class="champ-label">CHAMPION</div>' + TROPHY;
+    html += '<div class="champ' + (champ !== null ? ' set' : '') + '" id="champion">' +
+      (champ !== null ? '<span>' + esc(names[champ]) + '</span>' : '') + '</div>';
+    html += '<div class="third-label">3RD PLACE MATCH</div>';
+
+    matches.forEach(function (m) { html += slotHTML(m, 'A') + slotHTML(m, 'B'); });
+    stage.innerHTML = html;
+  }
+
+  /* ---------- fit to window (no horizontal scroll on laptops) ---------- */
+  var sizer = document.getElementById('sizer');
+  function fit() {
+    var availW = document.documentElement.clientWidth;
+    var availH = window.innerHeight - document.getElementById('toolbar').offsetHeight;
+    var sw = availW / W, sh = availH / H;
+    var s = Math.min(sw, Math.max(sh, sw * 0.85));   // prefer width; shrink a little if that shows the whole bracket
+    var minScale = availW < 900 ? 0.7 : 0.5;          // phones/tablets: keep text legible and scroll sideways instead
+    s = Math.max(minScale, Math.min(s, 1.4));
+    stage.style.transform = 'scale(' + s + ')';
+    sizer.style.width = Math.ceil(W * s) + 'px';
+    sizer.style.height = Math.ceil(H * s) + 'px';
+  }
+
+  /* =====================================================================
+     INTERACTION
+     ===================================================================== */
+  stage.addEventListener('click', function (e) {
+    var el = e.target.closest('button.slot');
+    if (!el || editMode) return;
+    if (pick(+el.dataset.match, el.dataset.slot)) { save(); render(); }
+  });
+
+  // hovering a team lights up every box that team currently occupies
+  stage.addEventListener('mouseover', function (e) {
+    var el = e.target.closest('button.slot');
+    var seed = el ? el.dataset.seed : null;
+    stage.querySelectorAll('.slot.hl').forEach(function (n) { if (n.dataset.seed !== seed) n.classList.remove('hl'); });
+    if (seed !== null) stage.querySelectorAll('button.slot[data-seed="' + seed + '"]').forEach(function (n) { n.classList.add('hl'); });
+  });
+  stage.addEventListener('mouseleave', function () {
+    stage.querySelectorAll('.slot.hl').forEach(function (n) { n.classList.remove('hl'); });
+  });
+
+  // edit mode
+  var btnEdit = document.getElementById('btnEdit'), hint = document.getElementById('hint');
+  function setEditMode(on) {
+    editMode = on;
+    btnEdit.classList.toggle('active', on);
+    btnEdit.textContent = on ? 'Done editing' : 'Edit team names';
+    hint.textContent = on ? 'Type new names in the Round of 64 boxes, then press Done.' :
+      'Click a team to advance it. Click the other team to switch.';
+    render();
+  }
+  btnEdit.addEventListener('click', function () { setEditMode(!editMode); });
+  stage.addEventListener('input', function (e) {
+    if (!e.target.matches('input[data-seed]')) return;
+    var i = +e.target.dataset.seed;
+    names[i] = e.target.value.trim() || DEFAULT_NAMES[i];
+    save();
+  });
+  stage.addEventListener('keydown', function (e) {
+    if (!e.target.matches('input[data-seed]')) return;
+    if (e.key === 'Escape') { setEditMode(false); return; }
+    if (e.key === 'Enter') {
+      var inputs = Array.prototype.slice.call(stage.querySelectorAll('input[data-seed]'));
+      inputs.sort(function (a, b) { return a.dataset.seed - b.dataset.seed; });
+      var nxt = inputs[inputs.indexOf(e.target) + 1];
+      if (nxt) { nxt.focus(); nxt.select(); } else setEditMode(false);
+    }
+  });
+
+  // reset (custom confirm dialog)
+  var modal = document.getElementById('modal');
+  function closeModal() { modal.classList.remove('open'); }
+  document.getElementById('btnReset').addEventListener('click', function () {
+    modal.classList.add('open');
+    document.getElementById('modalCancel').focus();
+  });
+  document.getElementById('modalCancel').addEventListener('click', closeModal);
+  modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal(); });
+  document.getElementById('modalOk').addEventListener('click', function () {
+    buildMatches(); save(); closeModal(); render();
+  });
+
+  // export
+  function renderCanvas() {
+    return html2canvas(stage, {
+      scale: 2, backgroundColor: '#080c16', width: W, height: H,
+      windowWidth: W + 100, windowHeight: H + 200, scrollX: 0, scrollY: 0, logging: false,
+      onclone: function (doc) {
+        doc.getElementById('stage').style.transform = 'none';
+        doc.getElementById('sizer').style.cssText = 'width:' + W + 'px;height:' + H + 'px;margin:0';
+        doc.getElementById('viewport').style.overflow = 'visible';
+        doc.getElementById('toolbar').style.display = 'none';
+      }
+    });
+  }
+  var btnExport = document.getElementById('btnExport');
+  btnExport.addEventListener('click', function () {
+    if (typeof html2canvas === 'undefined') { alert('PNG export needs an internet connection (html2canvas is loaded from a CDN).'); return; }
+    if (editMode) setEditMode(false);
+    btnExport.disabled = true; btnExport.textContent = 'Exporting…';
+    var fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+    fontsReady.then(renderCanvas).then(function (canvas) {
+      canvas.toBlob(function (blob) {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'tournament-bracket.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      }, 'image/png');
+    }).catch(function (err) {
+      console.error(err); alert('Export failed: ' + err.message);
+    }).then(function () { btnExport.disabled = false; btnExport.textContent = 'Export as PNG'; });
+  });
+
+  /* ---------- boot ---------- */
+  load();
+  render();
+  fit();
+  window.addEventListener('resize', fit);
+
+  // small debugging handle: window.bracket.matches in the console shows the model
+  window.bracket = { get matches() { return matches; }, get names() { return names; }, renderCanvas: renderCanvas };
+})();
+</script>
+</body>
+</html>

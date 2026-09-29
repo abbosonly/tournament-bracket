@@ -105,6 +105,7 @@
   .slot .score { flex: none; min-width: 12px; text-align: center; font: 600 11px/1 var(--mono); color: var(--muted); }
   .slot.win .score { color: var(--accent); }
   .slot .score sup { margin-left: 1px; font-size: 8px; font-weight: 500; vertical-align: 3px; opacity: .75; }
+  .slot .score.td { font-size: 9px; letter-spacing: .5px; }
   .slot.locked { cursor: default; }
 
   .slot.final { width: 170px; height: 27px; font-size: 14px; }
@@ -207,28 +208,40 @@
   var DEFAULT_NAMES = [
     'FC VOHA', 'CIFS4', 'Qizil Furiya', 'Joga Bonita', 'Reapers56', 'Sugdiyona', 'Emirate', 'Wiut MEN',
     'Invictus FC', 'Dagestanians', 'Chapman 2.0', 'Legacy FC', 'Fenix', 'Erkatoylar', 'ALWIUT', 'ThinkLike FC',
-    'West Mahalla', 'IHT', 'Apex', 'Hot Loads', 'The Best of the Best', 'CIFS43', 'Dehqonlar', 'Gingers',
+    'West Mahalla', 'IHT', 'Apex', 'Hot Loads', 'The Best of the Best', 'CIFS 43', 'Dehqonlar', 'Gingers',
     'Ajax FC', 'Sola Sol', 'Prime United', 'Bullet', 'Batman', 'Bayern', 'Egoisto', 'Camelot',
-    'La Masia', 'KIOTA', 'Uzbelas FC', 'Hayvani', 'Nozik Qalb Egalari', 'cifs34', 'CIFS 25', 'Shwerma FC',
-    'Psychos', 'oo7', 'Good Fellas', 'Paris Noir', 'Gentra 1.5', 'CIFS 47', 'FKB Icons', 'Uzbek Tigers',
+    'La Masia', 'KIOTA', 'Uzbelas FC', 'Hayvani', 'Nozik Qalb Egalari', 'CIFS 34', 'CIFS 25', 'Shawerma FC',
+    'Psychos', '007', 'Good Fellas', 'Paris Noir', 'Gentra 1.5', 'CIFS 47', 'FKB Icons', 'Uzbek Tigers',
     'ACE', 'La Scaloneta', '303 United', 'Falcons', 'Nova FC', 'Belty Tracker', 'Uzbeks', 'CIFS 42',
     'Arteta lovers', 'Zolotoy', 'Red Devils', 'CIFS 22', 'Naturals', 'Lucky 13', 'Khanov Team', 'Inferno'
   ];
   // previous default names, so saved brackets pick up the corrected spelling
-  var RENAMED = { 3: 'Joga Bonito', 5: 'Sogdiyona', 55: 'CIFS42', 59: 'CIFS22', 45: 'CIFS47', 53: 'Beliy Tracker' };
+  var RENAMED = { 3: 'Joga Bonito', 5: 'Sogdiyona', 55: 'CIFS42', 59: 'CIFS22', 45: 'CIFS47', 53: 'Beliy Tracker',
+    37: 'cifs34', 39: 'Shwerma FC', 41: 'oo7', 21: 'CIFS43' };
   var ROUND_SIZES = [32, 16, 8, 4, 2, 1];
   var FINAL = 5, THIRD = 6;
   var STORAGE_KEY = 'bracket64.v1';
 
   // Official results from @wiutfootball_club, keyed by Round-of-64 match id
   // (match i = seeds 2i+1 vs 2i+2). Score is [teamA, teamB] or, after a
-  // penalty shoot-out, [teamA, teamB, penA, penB]. These are locked.
+  // penalty shoot-out, [teamA, teamB, penA, penB]. ['TD', 'A'] means team A
+  // was given a technical defeat (forfeit). These are locked.
   var RESULTS = {
     0: [12, 0],   // FC VOHA 12–0 CIFS4
     1: [3, 0],    // Qizil Furiya 3–0 Joga Bonita
     2: [3, 1],    // Reapers56 3–1 Sugdiyona
     3: [11, 1],   // Emirate 11–1 Wiut MEN
     4: [1, 3],    // Invictus FC 1–3 Dagestanians
+    6: [9, 0],    // Fenix 9–0 Erkatoylar
+    8: [1, 5],    // West Mahalla 1–5 IHT
+    9: [2, 4],    // Apex 2–4 Hot Loads
+    10: [1, 2],   // The Best of the Best 1–2 CIFS 43
+    11: [2, 3],   // Dehqonlar 2–3 Gingers
+    17: [1, 2],   // Uzbelas FC 1–2 Hayvani
+    18: ['TD', 'B'],    // Nozik Qalb Egalari vs CIFS 34 — CIFS 34 technical defeat
+    19: [2, 2, 5, 4],   // CIFS 25 2–2 Shawerma FC (pens 5–4)
+    20: ['TD', 'A'],    // Psychos vs 007 — Psychos technical defeat
+    21: [0, 3],   // Good Fellas 0–3 Paris Noir
     22: [5, 0],   // Gentra 1.5 5–0 CIFS 47
     23: [6, 1],   // FKB Icons 6–1 Uzbek Tigers
     24: [0, 8],   // ACE 0–8 La Scaloneta
@@ -275,6 +288,7 @@
     Object.keys(RESULTS).forEach(function (id) {
       var m = matches[id], sc = RESULTS[id];
       m.score = sc;
+      if (sc[0] === 'TD') { m.winner = sc[1] === 'A' ? 'B' : 'A'; propagate(m); return; }
       var a = sc[0], b = sc[1];
       if (a === b && sc.length === 4) { a = sc[2]; b = sc[3]; }
       m.winner = a > b ? 'A' : 'B';
@@ -423,13 +437,15 @@
     if (m.winner === slot) cls.push('win');
     else if (m.winner) cls.push('lose');
     if (m.score) cls.push('locked');
-    var sc = m.score, pens = sc && sc.length === 4;
-    var tip = sc ? names[t] + ' — final score ' + sc[0] + '–' + sc[1] + (pens ? ', pens ' + sc[2] + '–' + sc[3] : '') :
+    var sc = m.score, td = sc && sc[0] === 'TD', pens = sc && !td && sc.length === 4;
+    var tip = td ? names[t] + (sc[1] === slot ? ' — technical defeat' : ' — won by technical defeat') :
+      sc ? names[t] + ' — final score ' + sc[0] + '–' + sc[1] + (pens ? ', pens ' + sc[2] + '–' + sc[3] : '') :
       ready ? names[t] : names[t] + ' — waiting for opponent';
     return '<button type="button" class="' + cls.join(' ') + '" style="' + style + '"' + data +
       ' data-seed="' + t + '" title="' + esc(tip) + '"' + (m.winner === slot ? ' aria-pressed="true"' : '') + '>' +
       seed + '<span class="name">' + esc(names[t]) + '</span>' +
-      (sc ? '<span class="score">' + sc[slot === 'A' ? 0 : 1] +
+      (td ? '<span class="score td">' + (sc[1] === slot ? 'TD' : 'W') + '</span>' :
+       sc ? '<span class="score">' + sc[slot === 'A' ? 0 : 1] +
         (pens ? '<sup>' + sc[slot === 'A' ? 2 : 3] + '</sup>' : '') + '</span>' : '') + '</button>';
   }
 

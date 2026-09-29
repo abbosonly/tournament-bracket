@@ -6,43 +6,49 @@
 <title>64-Team Football Championship</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #080c16;
-    --box: #161c2a;
-    --box-hi: #222b40;
-    --box-border: #272f42;
-    --line: #2f384d;
-    --text: #e8ecf4;
-    --muted: #6b7486;
-    --green: #7dff5a;
-    --green-dim: #3f8a33;
-    --gold: #e6b84f;
+    --bg: #0a0a0b;
+    --surface: #131315;
+    --surface-hi: #1b1b1e;
+    --border: #232327;
+    --border-hi: #3a3a40;
+    --line: #26262a;
+    --text: #ededee;
+    --muted: #6b6b73;
+    --faint: #45454b;
+    --accent: #d4ff3f;
+    --accent-dim: rgba(212, 255, 63, .35);
+    --accent-bg: rgba(212, 255, 63, .08);
+    --sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; background: var(--bg); color: var(--text); }
-  body { font-family: 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif; }
+  body { font-family: var(--sans); -webkit-font-smoothing: antialiased; }
 
   /* ---------- toolbar ---------- */
   #toolbar {
     position: sticky; top: 0; left: 0; z-index: 20;
-    display: flex; gap: 8px; align-items: center; justify-content: flex-end;
-    padding: 8px 14px;
-    background: rgba(8, 12, 22, .92);
-    border-bottom: 1px solid #1a2132;
-    backdrop-filter: blur(6px);
+    display: flex; gap: 4px; align-items: center; justify-content: flex-end;
+    padding: 10px 16px;
+    background: rgba(10, 10, 11, .8);
+    border-bottom: 1px solid #18181b;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
   }
-  #toolbar .hint { margin-right: auto; color: var(--muted); font-size: 14px; font-weight: 500; }
+  #toolbar .hint { margin-right: auto; color: var(--muted); font-size: 13px; }
   .btn {
-    font: 600 14px 'Barlow Semi Condensed', system-ui, sans-serif; letter-spacing: .4px;
-    color: var(--text); background: #182033; border: 1px solid #2c3750; border-radius: 6px;
-    padding: 6px 12px; cursor: pointer; white-space: nowrap;
+    font: 500 13px var(--sans);
+    color: #b4b4ba; background: transparent; border: 1px solid transparent; border-radius: 8px;
+    padding: 7px 12px; cursor: pointer; white-space: nowrap;
+    transition: color .15s, background .15s, border-color .15s;
   }
-  .btn:hover { background: #212c45; border-color: #44547a; }
-  .btn.active { background: #1d3a1a; border-color: var(--green); color: var(--green); }
-  .btn.danger:hover { background: #3a1a1e; border-color: #c2535f; }
+  .btn:hover { color: var(--text); background: var(--surface-hi); }
+  .btn.active { color: var(--bg); background: var(--accent); }
+  .btn.danger:hover { color: #ff6b6b; background: rgba(255, 107, 107, .08); }
   .btn:disabled { opacity: .5; cursor: progress; }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
   /* ---------- scaling shell ---------- */
   #viewport { overflow-x: auto; overflow-y: hidden; padding: 0; }
@@ -51,112 +57,103 @@
     position: absolute; top: 0; left: 0;
     width: 2000px; height: 1110px;
     transform-origin: 0 0;
-    background:
-      radial-gradient(ellipse 330px 420px at 1000px 660px, rgba(74, 170, 52, .20), rgba(74, 170, 52, 0) 100%),
-      radial-gradient(ellipse 1100px 700px at 1000px 420px, #111a2e, rgba(8, 12, 22, 0) 100%),
-      #080c16;
+    background: var(--bg);
     overflow: hidden;
     user-select: none; -webkit-user-select: none;
   }
 
   /* ---------- title + headers ---------- */
   .title-box {
-    position: absolute; left: 572px; top: 7px; width: 856px; height: 116px;
-    background: #04060b; text-align: center;
-  }
-  .title-box h1 {
-    margin: 0; padding-top: 16px;
-    font: 400 66px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3px; color: #fff;
+    position: absolute; left: 572px; top: 22px; width: 856px;
+    text-align: center;
   }
   .title-box p {
-    margin: 6px 0 0; font-size: 12px; font-weight: 500; letter-spacing: 5px; color: #808899;
+    margin: 0 0 12px; font: 500 12px/1 var(--mono); letter-spacing: 4px; color: var(--accent);
+  }
+  .title-box h1 {
+    margin: 0; font: 600 48px/1.05 var(--sans); letter-spacing: -1.5px; color: #fff;
   }
   .hdr {
-    position: absolute; top: 146px; width: 176px; text-align: center;
-    font: 400 17px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3.5px; color: var(--muted);
+    position: absolute; top: 150px; width: 176px; text-align: center;
+    font: 500 11px/1 var(--sans); letter-spacing: 2px; text-transform: uppercase; color: var(--faint);
   }
-  .hdr.green { color: var(--green); text-shadow: 0 0 10px rgba(125, 255, 90, .35); }
+  .hdr.green { color: var(--muted); }
 
   /* ---------- team slots ---------- */
   .slot {
     position: absolute; height: 23px; width: 150px; margin: 0;
-    display: flex; align-items: center; gap: 5px; padding: 0 7px;
-    background: var(--box); border: 1px solid var(--box-border); border-radius: 4px;
-    color: var(--text); font: 600 13.5px/1 'Barlow Semi Condensed', 'Arial Narrow', system-ui, sans-serif;
+    display: flex; align-items: center; gap: 6px; padding: 0 8px 0 6px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 5px;
+    color: #cfcfd4; font: 500 12.5px/1 var(--sans);
     text-align: left; cursor: pointer;
-    transition: background .12s, border-color .12s, opacity .12s;
+    transition: background .15s, border-color .15s, color .15s, opacity .15s;
   }
-  .slot.right { flex-direction: row-reverse; text-align: right; }
-  .slot .seed { flex: none; width: 14px; text-align: center; font-size: 9.5px; font-weight: 500; color: #5b6479; }
+  .slot.right { flex-direction: row-reverse; text-align: right; padding: 0 6px 0 8px; }
+  .slot .seed { flex: none; width: 15px; text-align: center; font: 500 9px/1 var(--mono); color: var(--faint); }
   .slot .name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-bottom: 1px; }
-  .slot.empty { cursor: default; background: #131926; border-color: #222a3c; }
-  .slot.empty::after {
-    content: ''; position: absolute; left: 25%; right: 25%; top: 50%; height: 1px; background: #2a3347;
-  }
+  .slot.empty { cursor: default; background: transparent; border-style: dashed; border-color: #1d1d20; }
   .slot.waiting { cursor: not-allowed; }
-  .slot.lose { opacity: .36; }
-  .slot.win {
-    background: #17331a; border-color: var(--green); color: #c9ffb8;
-    box-shadow: 0 0 8px rgba(125, 255, 90, .28);
-  }
-  .slot.win .seed { color: #79c766; }
-  .slot.hl:not(.empty) { border-color: #6f7fa6; background: var(--box-hi); }
-  .slot.win.hl { border-color: var(--green); background: #1d4421; }
-  .slot:not(.empty):hover { background: var(--box-hi); border-color: #8c9cc4; opacity: 1; }
-  .slot.win:hover { background: #1d4421; border-color: var(--green); }
-  .slot:focus-visible { outline: 2px solid #9db4ff; outline-offset: 1px; }
+  .slot.lose { opacity: .3; }
+  .slot.win { background: var(--accent-bg); border-color: var(--accent-dim); color: #fff; font-weight: 600; }
+  .slot.win .seed { color: var(--accent); }
+  .slot.hl:not(.empty) { border-color: var(--border-hi); background: var(--surface-hi); opacity: 1; }
+  .slot.win.hl { border-color: var(--accent); background: rgba(212, 255, 63, .14); }
+  .slot:not(.empty):hover { background: var(--surface-hi); border-color: #55555c; color: #fff; opacity: 1; }
+  .slot.win:hover { background: rgba(212, 255, 63, .14); border-color: var(--accent); }
+  .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
-  .slot.final { width: 170px; height: 27px; font-size: 15px; }
+  .slot.final { width: 170px; height: 27px; font-size: 14px; }
   .slot.third { width: 144px; }
 
   /* edit mode */
-  .slot.editing { padding: 0 3px 0 7px; cursor: text; border-style: dashed; border-color: #c9a545; background: #1e1c14; }
+  .slot.editing { padding: 0 4px 0 6px; cursor: text; border-style: dashed; border-color: var(--accent-dim); background: var(--surface); }
   .slot.editing input {
     flex: 1; min-width: 0; height: 19px; border: 0; outline: 0; background: transparent;
-    color: #ffe9ae; font: inherit; text-align: inherit; padding: 0;
+    color: #fff; font: inherit; text-align: inherit; padding: 0;
   }
 
   /* ---------- connector lines ---------- */
   .ln { position: absolute; background: var(--line); }
-  .ln.gd { background: var(--green-dim); }
-  .ln.g { background: var(--green); box-shadow: 0 0 6px rgba(125, 255, 90, .55); z-index: 1; }
+  .ln.gd { background: #303035; }
+  .ln.g { background: var(--accent); z-index: 1; }
 
   /* ---------- center ---------- */
   .champ-label {
-    position: absolute; left: 917px; top: 353px; width: 166px; height: 62px;
-    background: #24452a; color: var(--green); text-align: center;
-    font: 400 31px/62px 'Bebas Neue', Impact, sans-serif; letter-spacing: 5px;
-    text-shadow: 0 0 12px rgba(125, 255, 90, .4);
+    position: absolute; left: 900px; top: 372px; width: 200px; text-align: center;
+    font: 500 11px/1 var(--mono); letter-spacing: 5px; color: var(--muted);
   }
-  .trophy { position: absolute; left: 976px; top: 417px; width: 48px; height: 48px; }
+  .trophy { position: absolute; left: 980px; top: 400px; width: 40px; height: 40px; }
   .champ {
-    position: absolute; left: 915px; top: 480px; width: 170px; height: 40px;
-    display: flex; align-items: center; justify-content: center; padding: 0 8px;
-    border: 1.5px solid var(--green-dim); border-radius: 6px; background: #1b3420;
-    font-size: 18px; font-weight: 700; color: #eaffdf; text-align: center;
+    position: absolute; left: 900px; top: 460px; width: 200px; height: 52px;
+    display: flex; align-items: center; justify-content: center; padding: 0 12px;
+    border: 1px solid var(--border); border-radius: 10px; background: var(--surface);
+    font: 700 20px/1 var(--sans); letter-spacing: -.3px; color: #fff; text-align: center;
   }
-  .champ span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding-bottom: 1px; }
-  .champ.set { border-color: var(--green); background: #21502a; box-shadow: 0 0 18px rgba(125, 255, 90, .45); }
-  .champ:not(.set)::after { content: ''; width: 50%; height: 1px; background: #35593a; }
+  .champ span { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; padding: 2px 0; }
+  .champ.set { border-color: var(--accent); background: var(--accent); color: var(--bg); }
+  .champ:not(.set)::after { content: ''; width: 40%; height: 1px; background: var(--border-hi); }
   .third-label {
-    position: absolute; left: 900px; top: 690px; width: 200px; text-align: center;
-    font: 400 13px/1 'Bebas Neue', Impact, sans-serif; letter-spacing: 3px; color: var(--muted);
+    position: absolute; left: 900px; top: 694px; width: 200px; text-align: center;
+    font: 500 10px/1 var(--sans); letter-spacing: 2px; text-transform: uppercase; color: var(--faint);
   }
 
   /* ---------- modal ---------- */
   #modal {
     position: fixed; inset: 0; z-index: 50; display: none;
-    align-items: center; justify-content: center; background: rgba(3, 5, 10, .7);
+    align-items: center; justify-content: center; background: rgba(0, 0, 0, .6);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
   }
   #modal.open { display: flex; }
   #modal .card {
-    width: min(360px, calc(100vw - 32px)); padding: 20px;
-    background: #121929; border: 1px solid #2c3750; border-radius: 10px;
+    width: min(360px, calc(100vw - 32px)); padding: 22px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
   }
-  #modal h2 { margin: 0 0 6px; font-size: 20px; }
-  #modal p { margin: 0 0 16px; color: #9aa4b8; font-size: 15px; font-weight: 500; }
-  #modal .row { display: flex; gap: 8px; justify-content: flex-end; }
-  #modal .btn.confirm { background: #4a1d23; border-color: #c2535f; }
+  #modal h2 { margin: 0 0 6px; font: 600 17px var(--sans); }
+  #modal p { margin: 0 0 18px; color: #9a9aa2; font-size: 14px; line-height: 1.45; }
+  #modal .row { display: flex; gap: 6px; justify-content: flex-end; }
+  #modal .btn { border-color: var(--border); }
+  #modal .btn.confirm { color: #fff; background: #d64545; border-color: #d64545; }
+  #modal .btn.confirm:hover { background: #e05353; }
 
   @media (max-width: 700px) {
     #toolbar .hint { display: none; }
@@ -307,7 +304,7 @@
   var COL_X = 30, COL_W = 150, COL_PITCH = 176, BOX_H = 23, JOIN = 13;
   var FINAL_X = 915, FINAL_W = 170, FINAL_H = 27, FINAL_YA = 610, FINAL_YB = 642;
   var THIRD_X = 928, THIRD_YA = 722, THIRD_YB = 750;
-  var CHAMP_BOTTOM = 520;
+  var CHAMP_BOTTOM = 512;
 
   // Y[r][k] = vertical centre of the k-th box in column r (same for both sides)
   var Y = [[]];
@@ -339,7 +336,7 @@
   }
 
   function line(x1, y1, x2, y2, cls) {
-    var t = 2, left = Math.min(x1, x2), top = Math.min(y1, y2);
+    var t = 1.5, left = Math.min(x1, x2), top = Math.min(y1, y2);
     var w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
     if (h === 0) { top -= t / 2; h = t; } else { left -= t / 2; w = t; top -= t / 2; h += t; }
     return '<div class="ln ' + (cls || '') + '" style="left:' + left + 'px;top:' + top + 'px;width:' + w + 'px;height:' + h + 'px"></div>';
@@ -388,14 +385,14 @@
   }
 
   // <img> with an inline SVG data URI — html2canvas drops inline <svg> elements on export
-  var TROPHY = '<img class="trophy" alt="" width="48" height="48" src="data:image/svg+xml;utf8,' + encodeURIComponent(
-    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="96" height="96" fill="none" stroke="#e6b84f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' +
+  var TROPHY = '<img class="trophy" alt="" width="40" height="40" src="data:image/svg+xml;utf8,' + encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="96" height="96" fill="none" stroke="#d4ff3f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
     '<path d="M14 6h20v12a10 10 0 0 1-20 0V6z"/><path d="M14 10H7v3a7 7 0 0 0 7 7"/><path d="M34 10h7v3a7 7 0 0 1-7 7"/>' +
     '<path d="M24 28v7"/><path d="M17 42l2-7h10l2 7z"/></svg>') + '">';
 
   function render() {
     var html = '';
-    html += '<div class="title-box"><h1>64-TEAM FOOTBALL CHAMPIONSHIP</h1><p>SINGLE ELIMINATION</p></div>';
+    html += '<div class="title-box"><p>64 TEAMS · SINGLE ELIMINATION</p><h1>Football Championship</h1></div>';
 
     var labels = ['ROUND OF 64', 'ROUND OF 32', 'ROUND OF 16', 'QUARTERFINALS', 'SEMIFINAL'];
     labels.forEach(function (label, r) {
@@ -498,7 +495,7 @@
   // export
   function renderCanvas() {
     return html2canvas(stage, {
-      scale: 2, backgroundColor: '#080c16', width: W, height: H,
+      scale: 2, backgroundColor: '#0a0a0b', width: W, height: H,
       windowWidth: W + 100, windowHeight: H + 200, scrollX: 0, scrollY: 0, logging: false,
       onclone: function (doc) {
         doc.getElementById('stage').style.transform = 'none';

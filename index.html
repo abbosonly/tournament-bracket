@@ -222,8 +222,8 @@
   var FINAL = 5, THIRD = 6;
   var STORAGE_KEY = 'bracket64.v1';
 
-  // Official results from @wiutfootball_club, keyed by Round-of-64 match id
-  // (match i = seeds 2i+1 vs 2i+2). Score is [teamA, teamB] or, after a
+  // Official results from @wiutfootball_club, keyed by match id: 0–31 are the
+  // Round of 64 (match i = seeds 2i+1 vs 2i+2), 32–47 the Round of 32. Score is [teamA, teamB] or, after a
   // penalty shoot-out, [teamA, teamB, penA, penB]. ['TD', 'A'] means team A
   // was given a technical defeat (forfeit); ['WIN', 'A'] means team A won and
   // the score is unknown. These are locked.
@@ -259,7 +259,24 @@
     28: [1, 5],   // Arteta lovers 1–5 Zolotoy
     29: [0, 1],   // Red Devils 0–1 CIFS22
     30: [5, 0],   // Naturals 5–0 Lucky 13
-    31: [2, 2, 10, 9]   // Khanov Team 2–2 Inferno (pens 10–9)
+    31: [2, 2, 10, 9],   // Khanov Team 2–2 Inferno (pens 10–9)
+    // Round of 32
+    32: ['WIN', 'A'],  // FC VOHA beat Qizil Furiya
+    33: ['WIN', 'B'],  // Emirate beat Reapers56
+    34: ['WIN', 'B'],  // Chapman 2.0 beat Dagestanians
+    35: ['WIN', 'B'],  // ALWIUT beat Fenix
+    36: ['WIN', 'A'],  // IHT beat Hot Loads
+    37: ['WIN', 'A'],  // CIFS43 beat Gingers
+    38: ['WIN', 'B'],  // Bullet beat Ajax FC
+    39: ['WIN', 'A'],  // Batman beat Egoisto
+    40: ['WIN', 'A'],  // La Masia beat Hayvani
+    41: ['WIN', 'A'],  // Nozik Qalb Egalari beat CIFS 25
+    42: ['WIN', 'B'],  // Paris Noir beat oo7
+    43: ['WIN', 'A'],  // Gentra 1.5 beat FKB Icons
+    44: ['WIN', 'B'],  // Falcons beat La Scaloneta
+    45: ['WIN', 'B'],  // CIFS42 beat Nova FC
+    46: ['WIN', 'A'],  // Zolotoy beat CIFS22
+    47: ['WIN', 'B']   // Khanov Team beat Naturals
   };
 
   var names = DEFAULT_NAMES.slice();

@@ -223,7 +223,8 @@
   var STORAGE_KEY = 'bracket64.v1';
 
   // Official results from @wiutfootball_club, keyed by match id: 0–31 are the
-  // Round of 64 (match i = seeds 2i+1 vs 2i+2), 32–47 the Round of 32. Score is [teamA, teamB] or, after a
+  // Round of 64 (match i = seeds 2i+1 vs 2i+2), 32–47 the Round of 32,
+  // 48–55 the Round of 16. Score is [teamA, teamB] or, after a
   // penalty shoot-out, [teamA, teamB, penA, penB]. ['TD', 'A'] means team A
   // was given a technical defeat (forfeit); ['WIN', 'A'] means team A won and
   // the score is unknown. These are locked.
@@ -276,7 +277,16 @@
     44: ['WIN', 'B'],  // Falcons beat La Scaloneta
     45: ['WIN', 'B'],  // CIFS42 beat Nova FC
     46: ['WIN', 'A'],  // Zolotoy beat CIFS22
-    47: ['WIN', 'B']   // Khanov Team beat Naturals
+    47: ['WIN', 'B'],  // Khanov Team beat Naturals
+    // Round of 16
+    48: ['WIN', 'A'],  // FC VOHA beat Emirate
+    49: ['WIN', 'B'],  // ALWIUT beat Chapman 2.0
+    50: ['WIN', 'A'],  // IHT beat CIFS43
+    51: ['WIN', 'B'],  // Batman beat Bullet
+    52: ['WIN', 'A'],  // La Masia beat Nozik Qalb Egalari
+    53: ['WIN', 'B'],  // Gentra 1.5 beat Paris Noir
+    54: ['WIN', 'A'],  // Falcons beat CIFS42
+    55: ['WIN', 'A']   // Zolotoy beat Khanov Team
   };
 
   var names = DEFAULT_NAMES.slice();

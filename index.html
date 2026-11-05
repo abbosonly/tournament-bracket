@@ -224,7 +224,7 @@
 
   // Official results from @wiutfootball_club, keyed by match id: 0–31 are the
   // Round of 64 (match i = seeds 2i+1 vs 2i+2), 32–47 the Round of 32,
-  // 48–55 the Round of 16, 56–59 the quarterfinals. Score is [teamA, teamB] or, after a
+  // 48–55 the Round of 16, 56–59 the quarterfinals, 60–61 the semifinals. Score is [teamA, teamB] or, after a
   // penalty shoot-out, [teamA, teamB, penA, penB]. ['TD', 'A'] means team A
   // was given a technical defeat (forfeit); ['WIN', 'A'] means team A won and
   // the score is unknown. These are locked.
@@ -291,7 +291,10 @@
     56: ['WIN', 'B'],  // ALWIUT beat FC VOHA
     57: ['WIN', 'A'],  // IHT beat Batman
     58: ['WIN', 'A'],  // La Masia beat Gentra 1.5
-    59: ['WIN', 'B']   // Zolotoy beat Falcons
+    59: ['WIN', 'B'],  // Zolotoy beat Falcons
+    // Semifinals
+    60: ['WIN', 'A'],  // ALWIUT beat IHT
+    61: ['WIN', 'A']   // La Masia beat Zolotoy
   };
 
   var names = DEFAULT_NAMES.slice();
